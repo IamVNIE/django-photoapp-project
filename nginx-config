@@ -1,0 +1,32 @@
+server {
+	listen 80;
+	server_name 13.233.119.131;
+access_log /home/ubuntu/photoApp/access.log;
+error_log /home/ubuntu/photoApp/error.log warn;
+	location /favicon.ico {access_log off; log_not_found off; }
+	charset utf-8;
+	keepalive_timeout 5;
+	client_max_body_size 25M;
+
+	location /static/ {
+	autoindex on;
+		alias /home/ubuntu/photoApp/staticfiles/;
+	}
+
+	location /media/ {
+		autoindex off;
+
+		internal;
+
+		alias /home/ubuntu/photoApp/media/;
+	}
+
+	location / {
+		include        /etc/nginx/uwsgi_params;
+		uwsgi_pass     unix:///home/ubuntu/photoApp/photoApp.sock;
+		uwsgi_param Host $host;
+		uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+		uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+		uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+	}
+}

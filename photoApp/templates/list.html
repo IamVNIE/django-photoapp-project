@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+
+{% block content %}
+<div class="container mx-auto">
+    <div class="card-columns ">
+        {% for item in photos %}
+            <div class="card ">
+                <img src="{{item.image.url}}" class="card-img-top" alt="...">
+            </div>
+        {%endfor%}
+    </div>
+</div>
+{% endblock %}
