@@ -6,52 +6,68 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 import logging
-
+import os
 # Get an instance of a logger
 log = logging.getLogger(__name__)
 
 #---------- SECURITY and PROTECTION ---------------------------#
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-def media_folder_only(request, **kwargs):
-	log.error('Executing media_folder_only Function')
-	print('Executing media_folder_only Function')
-	raise PermissionDenied
+from django.http import HttpResponseForbidden
+
+def media_access(request, path):
+	access_granted = False
+	print('Media Access Cleanser Triggered',path)
+	log.info('Media Access Cleanser Triggered', request,path)
+	user = request.user
+	if path !='':
+		tags = path.split('/')
+		if len(tags)>1:
+			if user.is_authenticated:
+				id = tags[1]
+				try:
+					id = str(id)
+					fileName = os.path.basename(path)
+					q = get_object_or_404(MYPhotos ,pk=id)
+					print('Req User: {} -- Image Owner: {}'.format(user, q.creator))
+					if user == q.creator:
+						access_granted = True
+					elif q.is_public:
+						access_granted = True
+					elif user.is_superuser:
+						# If admin, everything is granted
+						access_granted = True
+				except:
+					log.error('Requested Media - Not a Valid Path')
+
+	if access_granted:
+		response = HttpResponse()
+		del response['Content-Type']
+		response['X-Accel-Redirect'] = '/protected/' + path.replace(str(id)+'/','')
+		print('Final Response', response['X-Accel-Redirect'])
+		return response
+	else:
+		return HttpResponseForbidden('Not authorized to access this media.')
 
 from django.conf import settings 
 from django.shortcuts import get_object_or_404
+#from sendfile import sendfile
+
 def sid(request, image_name):
 	print('\n\nSID FUNCTION\n\n', request, image_name)
 	log.info('SID FUNCTION', request,image_name)
+
 	response = HttpResponse('')
 	privateFileName = 'media/images/{}'.format(image_name)
-	q = get_object_or_404(MYPhotos, pk=image_name)
-	print('privateFileName',q.image.url)
+	#q = get_object_or_404(MYPhotos, pk=image_name)
+
+	print('privateFileName', privateFileName)
 	response['Content-Type'] = ''
-	response['X-Accel-Redirect'] =q.image.url
-	#response['Content-Disposition'] = 'attachment; filename="{}"'.format(q.image.url)
+	response['X-Accel-Redirect'] =privateFileName # q.image.url
+
 	print('Response X ',response)
 	return response
 
-def test_path_trigger(request):
-	print('\n\nTest Path Trigger FUNCTION\n\n', request)
-	log.error('Test Path Trigger FUNCTION', request)
-	return render(request, 'base.html')
 
-def secure_image_delivery(request, username, image_id):
-	print('Executing This Function')
-	log.error('Executing SID: User-{} image-{}'.format(username, image_id))
-	if username == request.user:
-		validAccess = 1
-	else:
-		validAccess = 0
-	if validAccess:
-		response = HttpResponse()
-		response['X-Accel-Redirect'] = 'media/images/'+image_id
-		#response['Content-Disposition'] = 'attachment; filename="{}"'.format(image_id)
-		return response
-	else:
-		raise PermissionDenied
 # Create your views here.
 def index(request):
     return render(request, 'base.html')
@@ -69,7 +85,6 @@ class PhotosUploadView(CreateView):
 	def form_valid(self, form):
 		exp = form.save(commit=False)
 		exp.creator = self.request.user
-		exp.image =  exp.image
 		exp.uploaded_at = timezone.now()
 		exp.save()
 		idk = exp.id
@@ -80,7 +95,6 @@ class PhotosUploadView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
-		log.error('Upload Function', self.request)
 		context['userName'] = self.request.user
 		return context
 
@@ -93,10 +107,8 @@ class PhotosHDView(DetailView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
-		#log.warn('Detail Function', self.request)
-		context['privateURL'] ='/pmedia/images/{}'.format(context['photos'].id)
-		print('\nPrivate URL:', context['privateURL'])
-		print('\nPrivate URL:', int(context['photos'].id))
+		x = context[self.context_object_name]
+		context['safeURLs'] = x.image.url.replace('/images','/images/'+str(x.id))
 		context['userName'] = self.request.user
 		return context
 
@@ -114,6 +126,11 @@ class PhotosListview(ListView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
+		print(10*'-','Context')
+		context['safeURLs'] =[]
+		for x in context[self.context_object_name]:
+			context['safeURLs'].append(x.image.url.replace('/images','/images/'+str(x.id)))
+		print(10*'-')
 		context['userName'] = self.request.user
 		return context
 

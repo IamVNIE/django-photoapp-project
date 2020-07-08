@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'g)ds+!s7)7!yh(aikuu%0z1thb92oyuvt%xj_jy1j_0ev3u6e^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'userManager',
     "crispy_forms",
     #"fileprovider",
+    #'sendfile',
+    #'private_storage',
 ]
 
 MIDDLEWARE = [

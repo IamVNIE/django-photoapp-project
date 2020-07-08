@@ -6,12 +6,11 @@ from .views import *
 from . import views
 from django.conf import settings 
 from django.conf.urls.static import static 
+#import private_storage.urls
 
 app_name = 'userManager'
 urlpatterns = [
-    path('pmedia/images/<slug:image_name>/',login_required(views.sid), name='SecureImages' ),
-    re_path(r'pmedia/$',login_required(views.sid), name='SecureImages' ),
-    re_path(r'smedia/$',login_required(views.test_path_trigger), name='TestSecureImages' ),
+    url(r'^media/(?P<path>.*)', login_required(views.media_access), name='media'),
     path('', index, name='index'),
     path('home/', login_required(home), name='home'),
     path('register/',register, name='register'),

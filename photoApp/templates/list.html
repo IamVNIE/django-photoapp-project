@@ -6,9 +6,9 @@
 {% block content %}
 <div class="container mx-auto">
     <div class="card-columns ">
-        {% for item in photos %}
+        {% for item in safeURLs %}
             <div class="card ">
-                <img src="{{item.image.url}}" class="card-img-top" alt="...">
+                <img src="{{item}}" class="card-img-top" alt="...">
             </div>
         {%endfor%}
     </div>

@@ -15,4 +15,4 @@ from crispy_forms.helper import FormHelper
 class PhotosUploadForm(forms.ModelForm):
     class Meta: 
         model = MYPhotos
-        fields = ('image',)
+        fields = ('image','is_public')
