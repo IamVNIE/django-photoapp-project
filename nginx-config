@@ -15,9 +15,7 @@ error_log /home/ubuntu/photoApp/error.log warn;
 
 	location /media/ {
 		autoindex off;
-
 		internal;
-
 		alias /home/ubuntu/photoApp/media/;
 	}
 

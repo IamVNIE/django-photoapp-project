@@ -14,20 +14,33 @@ log = logging.getLogger(__name__)
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 def media_folder_only(request, **kwargs):
-	log.warn('Executing media_folder_only Function')
+	log.error('Executing media_folder_only Function')
 	print('Executing media_folder_only Function')
 	raise PermissionDenied
 
 from django.conf import settings 
-def sid(request):
-	print('\n\nSID FUNCTION\n\n', request)
-	response = HttpResponse()
-	response['X-Accel-Redirect'] ='media/images/0.gif'
-	return request
+from django.shortcuts import get_object_or_404
+def sid(request, image_name):
+	print('\n\nSID FUNCTION\n\n', request, image_name)
+	log.info('SID FUNCTION', request,image_name)
+	response = HttpResponse('')
+	privateFileName = 'media/images/{}'.format(image_name)
+	q = get_object_or_404(MYPhotos, pk=image_name)
+	print('privateFileName',q.image.url)
+	response['Content-Type'] = ''
+	response['X-Accel-Redirect'] =q.image.url
+	#response['Content-Disposition'] = 'attachment; filename="{}"'.format(q.image.url)
+	print('Response X ',response)
+	return response
+
+def test_path_trigger(request):
+	print('\n\nTest Path Trigger FUNCTION\n\n', request)
+	log.error('Test Path Trigger FUNCTION', request)
+	return render(request, 'base.html')
 
 def secure_image_delivery(request, username, image_id):
 	print('Executing This Function')
-	log.warn('Executing SID: User-{} image-{}'.format(username, image_id))
+	log.error('Executing SID: User-{} image-{}'.format(username, image_id))
 	if username == request.user:
 		validAccess = 1
 	else:
@@ -67,6 +80,7 @@ class PhotosUploadView(CreateView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
+		log.error('Upload Function', self.request)
 		context['userName'] = self.request.user
 		return context
 
@@ -79,6 +93,10 @@ class PhotosHDView(DetailView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
+		#log.warn('Detail Function', self.request)
+		context['privateURL'] ='/pmedia/images/{}'.format(context['photos'].id)
+		print('\nPrivate URL:', context['privateURL'])
+		print('\nPrivate URL:', int(context['photos'].id))
 		context['userName'] = self.request.user
 		return context
 

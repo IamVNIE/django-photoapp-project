@@ -9,12 +9,9 @@ from django.conf.urls.static import static
 
 app_name = 'userManager'
 urlpatterns = [
-    # path('protected/', login_required(views.secure_image_delivery), name='403Error_1'),
-	# path('media/', login_required(views.media_folder_only), name='403Error_1'),
-	# path('media/images/', login_required(views.media_folder_only), name='403Error_2'),
-	# path('media/images/<slug:image_id>/', login_required(views.secure_image_delivery), name='SecureImages'),
-	re_path(r'^media/$',login_required(views.sid), name='SecureImages' ),
-
+    path('pmedia/images/<slug:image_name>/',login_required(views.sid), name='SecureImages' ),
+    re_path(r'pmedia/$',login_required(views.sid), name='SecureImages' ),
+    re_path(r'smedia/$',login_required(views.test_path_trigger), name='TestSecureImages' ),
     path('', index, name='index'),
     path('home/', login_required(home), name='home'),
     path('register/',register, name='register'),
